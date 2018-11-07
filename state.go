@@ -128,6 +128,14 @@ func (s *State) Predict(ctx *core.Context, dt data.Value) (data.Value, error) {
 	return s.base.Call("predict", dt)
 }
 
+// Call calls an instance method. It returns a result returned from
+// Python script.
+func (s *State) Call(ctx *core.Context, funcName string, dt ...data.Value) (data.Value, error) {
+	s.rwm.RLock()
+	defer s.rwm.RUnlock()
+	return s.base.Call(funcName, dt...)
+}
+
 // Save saves the model of the state. pystate calls `save` method and
 // use its return value as dumped model.
 func (s *State) Save(ctx *core.Context, w io.Writer, params data.Map) error {
@@ -270,6 +278,16 @@ func Predict(ctx *core.Context, stateName string, dt data.Value) (data.Value, er
 	}
 
 	return s.Predict(ctx, dt)
+}
+
+// CallMethod calls an instance method and returns its value.
+func CallMethod(ctx *core.Context, stateName string, funcName string, dt ...data.Value) (data.Value, error) {
+	s, err := lookupState(ctx, stateName)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Call(ctx, funcName, dt...)
 }
 
 // Flush pymlstate bucket. A return value is always nil.

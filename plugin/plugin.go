@@ -14,4 +14,6 @@ func init() {
 		udf.MustConvertGeneric(pymlstate.Predict))
 	udf.MustRegisterGlobalUDF("pymlstate_flush",
 		udf.MustConvertGeneric(pymlstate.Flush))
+	udf.MustRegisterGlobalUDF("pymlstate_call",
+		udf.MustConvertGeneric(pymlstate.CallMethod))
 }

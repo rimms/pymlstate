@@ -49,6 +49,47 @@ func TestPyMLStateFitAndPredict(t *testing.T) {
 	})
 }
 
+func TestPyMLStateCallMethod(t *testing.T) {
+	cc := &core.ContextConfig{}
+	ctx := core.NewContext(cc)
+	Convey("Given a context set pymlstate for call test", t, func() {
+		baseParams := &pystate.BaseParams{
+			ModulePath: "./",
+			ModuleName: "_test_pymlstate",
+			ClassName:  "TestClass",
+		}
+		mlParams := &MLParams{
+			BatchSize: 10,
+		}
+
+		s, err := New(baseParams, mlParams, data.Map{})
+		So(err, ShouldBeNil)
+		Reset(func() {
+			s.Terminate(ctx)
+		})
+		err = ctx.SharedStates.Add("pystate_test", "py", s)
+		So(err, ShouldBeNil)
+		Convey("When call the fit method", func() {
+			bu := []data.Value{
+				data.String("a"), data.String("b"),
+			}
+			ac, err := CallMethod(ctx, "pystate_test", "fit", bu)
+			So(err, ShouldBeNil)
+			Convey("Then fit function should be called", func() {
+				So(ac, ShouldEqual, "fit called")
+
+				Convey("And when call the predict method", func() {
+					ac2, err := CallMethod(ctx, "pystate_test", "predict", data.String("c"))
+					So(err, ShouldBeNil)
+					Convey("Then predict function should be called", func() {
+						So(ac2, ShouldEqual, "predict called")
+					})
+				})
+			})
+		})
+	})
+}
+
 func TestPyMLStateWrite(t *testing.T) {
 	cc := &core.ContextConfig{}
 	ctx := core.NewContext(cc)
